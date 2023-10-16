@@ -49,15 +49,15 @@ see the block detail in block folder
 
 ## File
 
-# Chaincode implentment 
+### Chaincode implentment 
 --> asset-transfer-basic/chaincode-go/smartcontract.go
-# Application
+### Application
 --> asset-transfer-basic/application-gateway-go
-# Channel Config
+### Channel Config
 --> test-network/configtx/configtx.yaml
-# Register Peer
+### Register Peer
 --> test-network/organizations/fabric-ca/registerEnroll.sh
-# Main Function 
+### Main Function 
 --> test-network/network.sh 
 
 
