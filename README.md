@@ -2,39 +2,40 @@
 
 1. Prerequisites
     
-Please follow the instructions in [this page](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) and install all the tool
+   Please follow the instructions in [this page](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) and install all the tool
 
-3. Clone the repo
+2. Clone the repo
    
-cd into the test-network directory inside fabric-samples
+   cd into the test-network directory inside fabric-samples
 
-5. Bring up test network, added the -ca flag to use the CA
+3. Bring up test network, added the -ca flag to use the CA
    ```
    ./network.sh up createChannel -c mychannel -ca 
    ```
 
-6. Deploy the smart contract basic 
+5. Deploy the smart contract basic 
    ```
    ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
    ```
 
-7. Run application
+6. Run application
    
-cd into asset-transfer-basic/application-gateway-go
+   cd into asset-transfer-basic/application-gateway-go
    ```
    go run .
    ```
 
-9. Get Transaction Detail
+7. Get Transaction Detail
     
-cd back to the test-network directory
-run 
+   cd back to the test-network directory
+   
+   run 
    ```
    ./network.sh getBlock -num <newest|oldest|config|(number)>
    ```
-see the block detail in block folder
+   see the block detail in block folder
 
-7. Clean up 
+8. Clean up 
    ```
    ./network.sh down
    ```
