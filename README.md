@@ -2,7 +2,7 @@
 
 1. Prerequisites
     
-   Please follow the instructions in [this page](https://hyperledger-fabric.readthedocs.io/en/latest/install.html](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html) and install all the tool
+   Please follow the instructions in (this page)[https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html] and install all the tool
 
 2. Clone the repo
    
