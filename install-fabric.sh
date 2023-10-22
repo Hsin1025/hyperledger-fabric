@@ -163,11 +163,11 @@ cloneSamplesRepo() {
     if [ -d test-network ]; then
         # if we are in the fabric-samples repo, checkout corresponding version
         echo "==> Already in fabric-samples repo"
-    elif [ -d fabric-samples ]; then
+    elif [ -d fabric-sample ]; then
         # if fabric-samples repo already cloned and in current directory,
         # cd fabric-samples
         echo "===> Changing directory to fabric-samples"
-        cd fabric-samples
+        cd fabric-sample
     else
         echo "===> Cloning hyperledger/fabric-samples repo"
         git clone -b main https://github.com/hyperledger/fabric-samples.git && cd fabric-samples
@@ -188,8 +188,8 @@ download() {
     local URL=$2
     local DEST_DIR=$(pwd)
     echo "===> Downloading: " "${URL}"
-    if [ -d fabric-samples ]; then
-       DEST_DIR="fabric-samples"
+    if [ -d fabric-sample ]; then
+       DEST_DIR="fabric-sample"
     fi
     echo "===> Will unpack to: ${DEST_DIR}"
     curl -L --retry 5 --retry-delay 3 "${URL}" | tar xz -C ${DEST_DIR}|| rc=$?

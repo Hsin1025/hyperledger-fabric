@@ -77,8 +77,6 @@ func main() {
 	network := gw.GetNetwork(channelName)
 	contract := network.GetContract(chaincodeName)
 
-	// contractQc := network.GetContract("qscc")
-
 	initLedger(contract)
 	getAllAssets(contract)
 	getCallerName(contract)
@@ -86,6 +84,7 @@ func main() {
 	transferAsset(contract)
 	readAssetByID(contract)
 	getHistoryForKey(contract)
+	readCreditByID(contract)
 	// transferAssetAsync(contract)
 	exampleErrorHandling(contract)
 }
@@ -249,6 +248,18 @@ func updateAsset(contract *client.Contract) {
 	}
 
 	fmt.Printf("*** Transaction commited successfully\n")
+}
+
+func readCreditByID(contract *client.Contract) {
+	fmt.Printf("\n--> Evaluate Transaction: ReadCredit, function returns credit attributes\n")
+
+	evaluateResult, err := contract.EvaluateTransaction("ReadCredit", "org1admin")
+	if err != nil {
+		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
+	}
+	result := formatJSON(evaluateResult)
+
+	fmt.Printf("*** Result:%s\n", result)
 }
 
 // Evaluate a transaction by assetID to query ledger state.

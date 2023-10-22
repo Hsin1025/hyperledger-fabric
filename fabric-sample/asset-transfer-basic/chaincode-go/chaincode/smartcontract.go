@@ -30,6 +30,13 @@ type Asset struct {
 	Function       string `json:"Function"`
 }
 
+type Credit struct {
+	ID          string `json:"ID"`
+	Transaction int    `json:"Transaction"`
+	Score       int    `json:"Score"`
+	FinalScore  int    `json:"FinalScore"`
+}
+
 // InitLedger adds a base set of assets to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 
@@ -52,6 +59,11 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		{ID: "asset6", Color: "white", Size: 15, Owner: caller, AppraisedValue: 800, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
 	}
 
+	credits := []Credit{
+		{ID: "org1admin", Transaction: 0, Score: 0, FinalScore: 0},
+		{ID: "org2admin", Transaction: 0, Score: 0, FinalScore: 0},
+	}
+
 	for _, asset := range assets {
 		assetJSON, err := json.Marshal(asset)
 		if err != nil {
@@ -59,6 +71,18 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		}
 
 		err = ctx.GetStub().PutState(asset.ID, assetJSON)
+		if err != nil {
+			return fmt.Errorf("failed to put to world state. %v", err)
+		}
+	}
+
+	for _, credit := range credits {
+		creditJSON, err := json.Marshal(credit)
+		if err != nil {
+			return err
+		}
+
+		err = ctx.GetStub().PutState(credit.ID, creditJSON)
 		if err != nil {
 			return fmt.Errorf("failed to put to world state. %v", err)
 		}
@@ -118,6 +142,22 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
+	var score = 1
+	if color == "" {
+		score = (score*10 - 3) / 10
+	}
+	if size == 0 {
+		score = (score*10 - 3) / 10
+	}
+	if appraisedValue == 0 {
+		score = (score*10 - 4) / 10
+	}
+
+	err = s.UpdateCredit(ctx, caller, score)
+	if err != nil {
+		return err
+	}
+
 	asset := Asset{
 		ID:             id,
 		Color:          color,
@@ -155,6 +195,24 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 	return &asset, nil
 }
 
+func (s *SmartContract) ReadCredit(ctx contractapi.TransactionContextInterface, id string) (*Credit, error) {
+	creditJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if creditJSON == nil {
+		return nil, fmt.Errorf("the credit %s does not exist", id)
+	}
+
+	var credit Credit
+	err = json.Unmarshal(creditJSON, &credit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &credit, nil
+}
+
 // UpdateAsset updates an existing asset in the world state with provided parameters.
 func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, appraisedValue int) error {
 	exists, err := s.AssetExists(ctx, id)
@@ -183,6 +241,23 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return err
 	}
+
+	var score = 1
+	if color == "" {
+		score = (score*10 - 3) / 10
+	}
+	if size == 0 {
+		score = (score*10 - 3) / 10
+	}
+	if appraisedValue == 0 {
+		score = (score*10 - 4) / 10
+	}
+
+	err = s.UpdateCredit(ctx, caller, score)
+	if err != nil {
+		return err
+	}
+
 	// overwriting original asset with new asset
 	assetNew := Asset{
 		ID:             id,
@@ -200,6 +275,24 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	}
 
 	return ctx.GetStub().PutState(id, assetJSON)
+}
+
+func (s *SmartContract) UpdateCredit(ctx contractapi.TransactionContextInterface, id string, score int) error {
+	credit, err := s.ReadCredit(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	credit.Score += score
+	credit.Transaction += 1
+	credit.FinalScore = credit.Score / credit.Transaction
+
+	creditJSON, err := json.Marshal(credit)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(id, creditJSON)
 }
 
 // DeleteAsset deletes an given asset from the world state.
