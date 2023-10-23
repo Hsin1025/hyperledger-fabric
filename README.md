@@ -6,7 +6,7 @@
 
 2. Clone the repo
    
-   cd into the test-network directory inside fabric-samples
+   cd into the test-network directory inside fabric-sample
 
 3. Bring up test network, added the -ca flag to use the CA
    ```
