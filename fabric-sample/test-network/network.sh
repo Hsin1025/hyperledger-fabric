@@ -135,9 +135,9 @@ function getHistoryForKey() {
 function getBlock() {
   setAdmin $1 $2
 
-  peer channel fetch 7 block/7_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c mychannel --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+  peer channel fetch $3 block/$3_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c mychannel --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
   cd block
-  configtxlator proto_decode --input 7_block.pb --type common.Block --output 7_block.json
+  configtxlator proto_decode --input $3_block.pb --type common.Block --output $3_block.json
 }
 
 # Obtain CONTAINER_IDS and remove them
@@ -543,6 +543,9 @@ DOCKER_SOCK="${SOCK##unix://}"
 # BFT activated flag
 BFT=0
 
+# Block number 
+NUM=3
+
 # Parse commandline args
 
 ## Parse mode
@@ -591,6 +594,10 @@ if [[ $# -ge 1 ]] ; then
   fi
   if [[ "$key" == "getHistoryForKey" ]]; then
       export MODE="getHistoryForKey"
+      shift
+  fi
+  if [[ "$key" == "getBlock" ]]; then
+      export MODE="getBlock"
       shift
   fi
 fi
@@ -678,9 +685,13 @@ while [[ $# -ge 1 ]] ; do
     NAME=$2
     shift
     ;;
+  -num )
+    NUM=$2
+    shift
+    ;;
   -verbose )
     VERBOSE=true
-    ;;
+    ;;    
   * )
     errorln "Unknown flag: $key"
     printHelp
@@ -747,7 +758,7 @@ elif [ "$MODE" == "getAll" ]; then
 elif [ "$MODE" == "readAsset" ]; then
   readAsset $ASSET
 elif [ "$MODE" == "getBlock" ]; then
-  getBlock $ORG $PEER_PORT
+  getBlock $ORG $PEER_PORT $NUM
 elif [ "$MODE" == "getCallerName" ]; then
   getCallerName $ORG $PEER_PORT
 elif [ "$MODE" == "getHistoryForKey" ]; then
