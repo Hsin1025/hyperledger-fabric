@@ -80,14 +80,15 @@ func main() {
 	//0 1 1 0 1 1 1 1 1 1 0
 	//0 1 1 0 1 0 0 0 1 1 0
 
-	// initLedger(contract)
+	initLedger(contract)
 	// getAllAssets(contract)
 	// getCallerName(contract)
 	createAsset(contract)
+	createAssetSec(contract)
 	// transferAsset(contract)
 	// readAssetByID(contract)
 	// getHistoryForKey(contract)
-	readCreditByID(contract, "org1admin")
+	readCreditByID(contract, "org1admin") // org1admin, org2admin, org5admin, org5admin1
 	// transferAssetAsync(contract)
 	// exampleErrorHandling(contract)
 }
@@ -227,6 +228,15 @@ func createAsset(contract *client.Contract) {
 	//0 1 1 0 1 1 1 1 1 1 0
 	//0 1 1 0 1 0 0 0 1 1 0
 	_, err := contract.SubmitTransaction("CreateAsset", "asset1", "0", "1", "1", "0", "1", "0", "0", "0", "1", "1", "0")
+	if err != nil {
+		panic(fmt.Errorf("failed to submit transaction: %w", err))
+	}
+
+	fmt.Printf("*** Transaction committed successfully\n")
+}
+func createAssetSec(contract *client.Contract) {
+	fmt.Printf("\n--> Submit Transaction: CreateAssetSec, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
+	_, err := contract.SubmitTransaction("CreateAsset", "asset2", "0", "1", "1", "0", "1", "1", "1", "1", "1", "1", "0")
 	if err != nil {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
