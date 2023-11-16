@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -19,22 +20,30 @@ type SmartContract struct {
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type Asset struct {
-	AppraisedValue int    `json:"AppraisedValue"`
-	Color          string `json:"Color"`
-	ID             string `json:"ID"`
-	Owner          string `json:"Owner"`
-	Size           int    `json:"Size"`
-	Source         string `json:"Source"`
-	TimeStamp      string `json:"TimeStamp"`
-	Sender         string `json:"Sender"`
-	Function       string `json:"Function"`
+	ID                      string    `json:"ID"`
+	Owner                   string    `json:"Owner"`
+	AcceptanceSampling      int       `json:"AcceptanceSampling"`
+	ManufacturingEquipment  int       `json:"ManufacturingEquipment"`
+	TransportationEquipment int       `json:"TransportationEquipment"`
+	InventoryManagement     int       `json:"InventoryManagement"`
+	SaveEquipment           int       `json:"SaveEquipment"`
+	A01                     int       `json:"A01"`
+	A02                     int       `json:"A02"`
+	A03                     int       `json:"A03"`
+	A04                     int       `json:"A04"`
+	B01                     int       `json:"B01"`
+	C01                     int       `json:"C01"`
+	Source                  string    `json:"Source"`
+	TimeStamp               time.Time `json:"TimeStamp"`
+	Sender                  string    `json:"Sender"`
+	Function                string    `json:"Function"`
 }
 
 type Credit struct {
-	ID          string `json:"ID"`
-	Transaction int    `json:"Transaction"`
-	Score       int    `json:"Score"`
-	FinalScore  int    `json:"FinalScore"`
+	ID          string  `json:"ID"`
+	Transaction float32 `json:"Transaction"`
+	Score       float32 `json:"Score"`
+	FinalScore  float32 `json:"FinalScore"`
 }
 
 // InitLedger adds a base set of assets to the ledger
@@ -51,17 +60,14 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	}
 
 	assets := []Asset{
-		{ID: "asset1", Color: "blue", Size: 5, Owner: caller, AppraisedValue: 300, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
-		{ID: "asset2", Color: "red", Size: 5, Owner: caller, AppraisedValue: 400, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
-		{ID: "asset3", Color: "green", Size: 10, Owner: caller, AppraisedValue: 500, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
-		{ID: "asset4", Color: "yellow", Size: 10, Owner: caller, AppraisedValue: 600, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
-		{ID: "asset5", Color: "black", Size: 15, Owner: caller, AppraisedValue: 700, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
-		{ID: "asset6", Color: "white", Size: 15, Owner: caller, AppraisedValue: 800, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
+		{ID: "init", Owner: caller, AcceptanceSampling: 0, ManufacturingEquipment: 1, TransportationEquipment: 1, InventoryManagement: 0, SaveEquipment: 1, A01: 1, A02: 1, A03: 1, A04: 1, B01: 1, C01: 0, Source: caller, TimeStamp: timestamp, Sender: caller, Function: "InitLedger"},
 	}
 
 	credits := []Credit{
 		{ID: "org1admin", Transaction: 0, Score: 0, FinalScore: 0},
 		{ID: "org2admin", Transaction: 0, Score: 0, FinalScore: 0},
+		{ID: "org5admin", Transaction: 0, Score: 0, FinalScore: 0},
+		{ID: "org5admin1", Transaction: 0, Score: 0, FinalScore: 0},
 	}
 
 	for _, asset := range assets {
@@ -109,17 +115,17 @@ func (s *SmartContract) GetCallerName(ctx contractapi.TransactionContextInterfac
 	return str, nil
 }
 
-func (s *SmartContract) GetTimeStamp(ctx contractapi.TransactionContextInterface) (string, error) {
+func (s *SmartContract) GetTimeStamp(ctx contractapi.TransactionContextInterface) (time.Time, error) {
 	timestamp, err := ctx.GetStub().GetTxTimestamp()
 	if err != nil {
-		return "", fmt.Errorf("Failed to get timestamp")
+		return time.Unix(0, 0), fmt.Errorf("Failed to get timestamp")
 	}
 
-	return timestamp.String(), err
+	return time.Unix(timestamp.Seconds, int64(timestamp.GetNanos())), nil
 }
 
 // CreateAsset issues a new asset to the world state with given details.
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, appraisedValue int) error {
+func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, acceptancesampling int, manufacturingequipment int, transportationequipment int, inventorymanagement int, saveequipment int, a01 int, a02 int, a03 int, a04 int, b01 int, c01 int) error {
 	exists, err := s.AssetExists(ctx, id)
 	if err != nil {
 		return err
@@ -142,15 +148,21 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
-	var score = 1
-	if color == "" {
-		score = (score*10 - 3) / 10
+	var score float32 = 1
+	if acceptancesampling == 0 {
+		score = (score*10 - 2) / 10
 	}
-	if size == 0 {
-		score = (score*10 - 3) / 10
+	if manufacturingequipment == 0 {
+		score = (score*10 - 2) / 10
 	}
-	if appraisedValue == 0 {
-		score = (score*10 - 4) / 10
+	if transportationequipment == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if inventorymanagement == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if saveequipment == 0 {
+		score = (score*10 - 2) / 10
 	}
 
 	err = s.UpdateCredit(ctx, caller, score)
@@ -158,15 +170,59 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
+	score = 1
+	if a01 == 0 {
+		score = (score*100 - 25) / 100
+	}
+	if a02 == 0 {
+		score = (score*100 - 25) / 100
+	}
+	if a03 == 0 {
+		score = (score*100 - 25) / 100
+	}
+	if a04 == 0 {
+		score = (score*100 - 25) / 100
+	}
+	err = s.UpdateCredit(ctx, "org2admin", score)
+	if err != nil {
+		return err
+	}
+
+	score = 1
+	if b01 == 0 {
+		score = (score*10 - 10) / 10
+	}
+	err = s.UpdateCredit(ctx, "org5admin", score)
+	if err != nil {
+		return err
+	}
+
+	score = 1
+	if c01 == 0 {
+		score = (score*10 - 10) / 10
+	}
+	err = s.UpdateCredit(ctx, "org5admin1", score)
+	if err != nil {
+		return err
+	}
+
 	asset := Asset{
-		ID:             id,
-		Color:          color,
-		Size:           size,
-		Owner:          caller,
-		AppraisedValue: appraisedValue,
-		TimeStamp:      timestamp,
-		Sender:         caller,
-		Function:       "CreateAsset",
+		ID:                      id,
+		Owner:                   caller,
+		AcceptanceSampling:      acceptancesampling,
+		ManufacturingEquipment:  manufacturingequipment,
+		TransportationEquipment: transportationequipment,
+		InventoryManagement:     inventorymanagement,
+		SaveEquipment:           saveequipment,
+		A01:                     a01,
+		A02:                     a02,
+		A03:                     a03,
+		A04:                     a04,
+		B01:                     b01,
+		C01:                     c01,
+		TimeStamp:               timestamp,
+		Sender:                  caller,
+		Function:                "CreateAsset",
 	}
 	assetJSON, err := json.Marshal(asset)
 	if err != nil {
@@ -214,7 +270,7 @@ func (s *SmartContract) ReadCredit(ctx contractapi.TransactionContextInterface, 
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, appraisedValue int) error {
+func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, acceptancesampling int, manufacturingequipment int, transportationequipment int, inventorymanagement int, saveequipment int) error {
 	exists, err := s.AssetExists(ctx, id)
 	if err != nil {
 		return err
@@ -236,21 +292,30 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	if asset.Owner != caller {
 		return fmt.Errorf("only the owner of the asset can update the asset")
 	}
+	if caller != "org1admin" {
+		return fmt.Errorf("only admin from org1 can use this function")
+	}
+
+	var score float32 = 1
+	if acceptancesampling == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if manufacturingequipment == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if transportationequipment == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if inventorymanagement == 0 {
+		score = (score*10 - 2) / 10
+	}
+	if saveequipment == 0 {
+		score = (score*10 - 2) / 10
+	}
 
 	timestamp, err := s.GetTimeStamp(ctx)
 	if err != nil {
 		return err
-	}
-
-	var score = 1
-	if color == "" {
-		score = (score*10 - 3) / 10
-	}
-	if size == 0 {
-		score = (score*10 - 3) / 10
-	}
-	if appraisedValue == 0 {
-		score = (score*10 - 4) / 10
 	}
 
 	err = s.UpdateCredit(ctx, caller, score)
@@ -260,14 +325,22 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 
 	// overwriting original asset with new asset
 	assetNew := Asset{
-		ID:             id,
-		Color:          color,
-		Size:           size,
-		Owner:          caller,
-		AppraisedValue: appraisedValue,
-		TimeStamp:      timestamp,
-		Sender:         caller,
-		Function:       "UpdateAsset",
+		ID:                      id,
+		Owner:                   caller,
+		AcceptanceSampling:      acceptancesampling,
+		ManufacturingEquipment:  manufacturingequipment,
+		TransportationEquipment: transportationequipment,
+		InventoryManagement:     inventorymanagement,
+		SaveEquipment:           saveequipment,
+		A01:                     asset.A01,
+		A02:                     asset.A02,
+		A03:                     asset.A03,
+		A04:                     asset.A04,
+		B01:                     asset.B01,
+		C01:                     asset.C01,
+		TimeStamp:               timestamp,
+		Sender:                  caller,
+		Function:                "Org1UpdateAsset",
 	}
 	assetJSON, err := json.Marshal(assetNew)
 	if err != nil {
@@ -277,7 +350,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
-func (s *SmartContract) UpdateCredit(ctx contractapi.TransactionContextInterface, id string, score int) error {
+func (s *SmartContract) UpdateCredit(ctx contractapi.TransactionContextInterface, id string, score float32) error {
 	credit, err := s.ReadCredit(ctx, id)
 	if err != nil {
 		return err
@@ -418,7 +491,7 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 	}
 	defer resultsIterator.Close()
 
-	var assets []*Asset
+	var result []*Asset
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
 		if err != nil {
@@ -430,8 +503,9 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		if err != nil {
 			return nil, err
 		}
-		assets = append(assets, &asset)
+
+		result = append(result, &asset)
 	}
 
-	return assets, nil
+	return result, nil
 }

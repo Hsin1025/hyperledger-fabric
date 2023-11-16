@@ -332,6 +332,10 @@ function createOrgs() {
 
     createOrg4
 
+    infoln "Creating Org4 Identities"
+
+    createOrg5
+
     infoln "Creating Orderer Org Identities"
 
     createOrderer    

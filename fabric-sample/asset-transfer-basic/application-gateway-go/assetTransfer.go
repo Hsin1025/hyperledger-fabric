@@ -77,16 +77,19 @@ func main() {
 	network := gw.GetNetwork(channelName)
 	contract := network.GetContract(chaincodeName)
 
-	initLedger(contract)
-	getAllAssets(contract)
-	getCallerName(contract)
-	createAsset(contract)
-	transferAsset(contract)
-	readAssetByID(contract)
-	getHistoryForKey(contract)
-	readCreditByID(contract)
+	//0 1 1 0 1 1 1 1 1 1 0
+	//0 1 1 0 1 0 0 0 1 1 0
+
+	// initLedger(contract)
+	// getAllAssets(contract)
+	// getCallerName(contract)
+	createAsset(contract, "asset1", "0", "1", "1", "0", "1", "0", "0", "0", "1", "1", "0")
+	// transferAsset(contract)
+	// readAssetByID(contract)
+	// getHistoryForKey(contract)
+	readCreditByID(contract, "org1admin")
 	// transferAssetAsync(contract)
-	exampleErrorHandling(contract)
+	// exampleErrorHandling(contract)
 }
 
 // newGrpcConnection creates a gRPC connection to the Gateway server.
@@ -217,10 +220,11 @@ func getHistoryForKey(contract *client.Contract) {
 }
 
 // Submit a transaction synchronously, blocking until it has been committed to the ledger.
-func createAsset(contract *client.Contract) {
+func createAsset(contract *client.Contract, id string, as string, me string, te string, im string, se string, a01 string, a02 string, a03 string, a04 string, b01 string, c01 string) {
 	fmt.Printf("\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
-
-	_, err := contract.SubmitTransaction("CreateAsset", "asset7", "yellow", "5", "1300")
+	// id string, acceptancesample string, manufacturingequipment string, transportationequipment string, inventorymanagement string, saveequipment string, a01 string, a02 string, a03 string, a04 string, b01 string, c01 string
+	// _, err := contract.SubmitTransaction("CreateAsset", id, acceptancesample, manufacturingequipment, transportationequipment, inventorymanagement, saveequipment, a01, a02, a03, a04, b01, c01)
+	_, err := contract.SubmitTransaction("CreateAsset", id, as, me, te, im, se, a01, a02, a03, a04, b01, c01)
 	if err != nil {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
@@ -250,10 +254,10 @@ func updateAsset(contract *client.Contract) {
 	fmt.Printf("*** Transaction commited successfully\n")
 }
 
-func readCreditByID(contract *client.Contract) {
+func readCreditByID(contract *client.Contract, id string) {
 	fmt.Printf("\n--> Evaluate Transaction: ReadCredit, function returns credit attributes\n")
 
-	evaluateResult, err := contract.EvaluateTransaction("ReadCredit", "org1admin")
+	evaluateResult, err := contract.EvaluateTransaction("ReadCredit", id)
 	if err != nil {
 		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
 	}
