@@ -83,7 +83,7 @@ func main() {
 	// initLedger(contract)
 	// getAllAssets(contract)
 	// getCallerName(contract)
-	createAsset(contract, "asset1", "0", "1", "1", "0", "1", "0", "0", "0", "1", "1", "0")
+	createAsset(contract)
 	// transferAsset(contract)
 	// readAssetByID(contract)
 	// getHistoryForKey(contract)
@@ -220,11 +220,13 @@ func getHistoryForKey(contract *client.Contract) {
 }
 
 // Submit a transaction synchronously, blocking until it has been committed to the ledger.
-func createAsset(contract *client.Contract, id string, as string, me string, te string, im string, se string, a01 string, a02 string, a03 string, a04 string, b01 string, c01 string) {
+func createAsset(contract *client.Contract) {
 	fmt.Printf("\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
 	// id string, acceptancesample string, manufacturingequipment string, transportationequipment string, inventorymanagement string, saveequipment string, a01 string, a02 string, a03 string, a04 string, b01 string, c01 string
 	// _, err := contract.SubmitTransaction("CreateAsset", id, acceptancesample, manufacturingequipment, transportationequipment, inventorymanagement, saveequipment, a01, a02, a03, a04, b01, c01)
-	_, err := contract.SubmitTransaction("CreateAsset", id, as, me, te, im, se, a01, a02, a03, a04, b01, c01)
+	//0 1 1 0 1 1 1 1 1 1 0
+	//0 1 1 0 1 0 0 0 1 1 0
+	_, err := contract.SubmitTransaction("CreateAsset", "asset1", "0", "1", "1", "0", "1", "0", "0", "0", "1", "1", "0")
 	if err != nil {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
